@@ -23,3 +23,21 @@ pub enum ParseError {
     NoRightParen,
     Empty,
 }
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ParseError::InvalidEscape(pos, ch) => {
+                write!(f, "ParseError: invalid escape: pos = {pos}, char = '{ch}'")
+            }
+            ParseError::InvalidRightParen(pos) => {
+                write!(f, "ParseError: invalid right paren: pos = {pos}")
+            }
+            ParseError::NoPrev(pos) => write!(f, "ParseError: no previous AST: pos = {pos}"),
+            ParseError::NoRightParen => write!(f, "ParseError: no right parenthesis"),
+            ParseError::Empty => write!(f, "ParseError: empty expression"),
+        }
+    }
+}
+
+impl Error for ParseError {}
