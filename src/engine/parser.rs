@@ -24,6 +24,7 @@ pub enum ParseError {
     Empty,
 }
 
+// TODO thiserrorに置き換えてみる
 impl Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -41,3 +42,14 @@ impl Display for ParseError {
 }
 
 impl Error for ParseError {}
+
+/// 特殊文字のエスケープ
+fn parse_escape(pos: usize, c: char) -> Result<AST, ParseError> {
+    match c {
+        '\\' | '(' | ')' | '|' | '+' | '*' | '?' => Ok(AST::Char(c)),
+        _ => {
+            let err = ParseError::InvalidEscape(pos, c);
+            Err(err)
+        }
+    }
+}
