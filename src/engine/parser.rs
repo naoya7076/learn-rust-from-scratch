@@ -90,3 +90,75 @@ fn fold_or(mut seq_or: Vec<AST>) -> Option<AST> {
         seq_or.pop()
     }
 }
+
+pub fn parse(expr: &str) -> Result<AST, ParseError> {
+    enum ParseState {
+        Char,
+        Escape,
+    }
+
+    let mut seq = Vec::new();
+    let mut seq_or = Vec::new();
+    let mut stack = Vec::new();
+    let mut state = ParseState::Char;
+
+    for (i, c) in expr.chars().enumerate() {
+        match &state {
+            ParseState::Char => match c {
+                '+' => parse_plus_star_question(&mut seq, PSQ::Plus, i)?,
+                '*' => parse_plus_star_question(&mut seq, PSQ::Start, i)?,
+                '?' => parse_plus_star_question(&mut seq, PSQ::Question, i)?,
+                '(' => {
+                    let prev = take(&mut seq);
+                    let prev_or = take(&mut seq_or);
+                    stack.push(prev, prev_or);
+                }
+                ')' => {
+                    if let Some((mut prev, prev_or)) = stack.pop() {
+                        if !seq.is_empty() {
+                            seq_or.push(AST::Seq(seq))
+                        }
+
+                        if let Some(ast) = fold_or(seq_or) {
+                            prev.push(ast);
+                        }
+
+                        seq = prev;
+                        seq_or = prev_or;
+                    } else {
+                        return Err(Box::new(ParseError::InvalidRightParen(i)));
+                    }
+                }
+                '|' => {
+                    if !seq.is_empty() {
+                        return Err(Box::new(ParseError::NoPrev(i)));
+                    } else {
+                        let prev = take(&mut seq);
+                        seq_or.push(AST::Seq(prev));
+                    }
+                }
+                '\\' => state = ParseState::Escape,
+                _ => seq.push(AST::Char(c)),
+            },
+            ParseState::Escape => {
+                let ast = parse_escape(i, c)?;
+                seq.push(ast);
+                state = ParseState::Char;
+            }
+        }
+    }
+
+    if !stack.is_empty() {
+        return Err(Box::new(ParseError::NoRightParen));
+    }
+
+    if !seq.is_empty() {
+        seq_or.push(AST::Seq(seq))
+    }
+
+    if let Some(ast) = fold_or(seq_or) {
+        Ok(ast)
+    } else {
+        Err(Box::new(ParseError::Empty))
+    }
+}
