@@ -7,7 +7,7 @@ use std::{
 
 #[derive(Debug)]
 pub enum CodeGenError {
-    POOverFlow,
+    PCOverFlow,
     FailStar,
     FailOr,
     FailQuestion,
@@ -20,3 +20,32 @@ impl Display for CodeGenError {
 }
 
 impl Error for CodeGenError {}
+
+#[derive(Debug)]
+struct Generator {
+    pc: usize,
+    insts: Vec<Instruction>,
+}
+
+fn inc_pc(&mut self) -> Result<(), CodeGenError> {
+    safe_add(&mut self.pc, &1, || CodeGenError::POverFlow)
+}
+
+fn gen_expr(&mut self, ast: &AST) -> Result<(), CodeGenError> {
+    match ast {
+        AST::Char(c) => self.gen_char(*c)?,
+        AST::Or(e1, e2) => self.gen_or(e1, e2)?,
+        AST::Plus(e) => self.gen_plus(e)?,
+        AST::Star(e) => self.gen_star(e)?,
+        AST::Question(e) => self.gen_question(e)?,
+        AST::Seq(v) => self.gen_seq(v)?,
+    }
+    Ok(())
+}
+
+fn gen_seq(&mut self, exprs: &[AST]) -> Result<(), CodeGenError> {
+    for e in exprs {
+        self.gen_expr(e)?;
+    }
+    Ok(())
+}
