@@ -56,3 +56,50 @@ fn gen_char(&mut self, c: char) -> Result<(), CodeGenError> {
     self.inc_pc()?;
     Ok(())
 }
+/// ```text
+///     split L1, L2
+/// L1: e1のコード
+/// L2: e2のコード
+/// L3:
+/// ```
+fn gen_or(&mut self, e1: &AST, e2: &AST) -> Result<(), CodeGenError> {
+    let split_addr = self.pc;
+    self.inc_pc()?;
+
+    let split = Instruction::Split(self.pc, 0);
+    self.insts.push(split);
+
+    self.gen_expr(e1)?;
+
+    let jmp_addr = self.pc;
+    self.insts.push(Instruction::Jump(0));
+
+    self.inc_pc()?;
+    if let Some(Instruction::Split(_, l2)) = self.insts.get_mut(split_addr) {
+        *l2 = self.pc;
+    } else {
+        return Err(Box::new(CodeGenError::FailOr));
+    }
+
+    self.gen_expr(e2)?;
+
+    if let Some(Instruction::Jump(l3)) = self.insts.get_mut(jmp_addr) {
+        *l3 = self.pc;
+    } else {
+        return Err(Box::new(CodeGenError::FailOr));
+    }
+    Ok(())
+}
+
+fn gen_code(&mut self, ast: &AST) -> Result<(), CodeGenError> {
+    self.gen_expr(ast)?;
+    self.inc_pc;
+    self.insts.push(Instruction::Match);
+    Ok(())
+}
+
+pub fn codegen(ast: &AST) -> Result<Vec<Instruction>, CodeGenError> {
+    let mut gen = Generator::default();
+    gen.gen_code(ast)?;
+    Ok(gen.insts)
+}
