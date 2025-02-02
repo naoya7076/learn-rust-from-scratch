@@ -49,3 +49,10 @@ fn gen_seq(&mut self, exprs: &[AST]) -> Result<(), CodeGenError> {
     }
     Ok(())
 }
+
+fn gen_char(&mut self, c: char) -> Result<(), CodeGenError> {
+    let inst = Instruction::Char(c);
+    self.insts.push(inst);
+    self.inc_pc()?;
+    Ok(())
+}
