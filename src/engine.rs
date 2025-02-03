@@ -23,6 +23,21 @@ impl Display for Instruction {
     }
 }
 
+pub fn print(expr: &str) -> Result<(), DynError> {
+    println!("expr: {expr}");
+    let ast = parser::parse(expr)?;
+    println!("AST: {:?}", ast);
+
+    println!();
+    println!("code:");
+    let code = codegen::get_code(&ast)?;
+    for (n, c) in code.iter().enumerate() {
+        println!("{:>04}: {c}", n);
+    }
+
+    Ok(())
+}
+
 /// 正規表現と文字列をマッチング
 /// ```
 /// use regex;
