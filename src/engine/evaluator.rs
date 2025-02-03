@@ -1,7 +1,6 @@
 use super::Instruction;
-use create::helper::safe_add;
+use crate::helper::safe_add;
 use std::{
-    collections::VecDeque,
     error::Error,
     fmt::{self, Display},
 };
@@ -14,6 +13,14 @@ pub enum EvalError {
     InvalidContext,
 }
 
+impl Display for EvalError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "CodeGenError: {:?}", self)
+    }
+}
+
+impl Error for EvalError {}
+
 fn eval_depth(
     inst: &[Instruction],
     line: &[char],
@@ -24,14 +31,14 @@ fn eval_depth(
         let next = if let Some(i) = inst.get(pc) {
             i
         } else {
-            return Err(Box::new(EvalError::InvalidPC));
+            return Err(EvalError::InvalidPC);
         };
         match next {
             Instruction::Char(c) => {
                 if let Some(sp_c) = line.get(sp) {
                     if c == sp_c {
-                        safe_add(&mut pc, &1, || Box::new(EvalError::PCOverFlow))?;
-                        safe_add(&mut sp, &1, || Box::new(EvalError::SPOverFlow))?;
+                        safe_add(&mut pc, &1, || Box::new(EvalError::PCOverFlow));
+                        safe_add(&mut sp, &1, || Box::new(EvalError::SPOverFlow));
                     } else {
                         return Ok(false);
                     }
@@ -56,10 +63,10 @@ fn eval_depth(
     }
 }
 
-pub fn eval(inst: &[Instruction], line: &[char], is_depth: bool) -> Result<bool, EvalError>{
-    if is_depth{
-        eval_depth(inst, line, 0,0)
-    }eval{
-        eval_width(inst, line)
+pub fn eval(inst: &[Instruction], line: &[char], is_depth: bool) -> Result<bool, EvalError> {
+    if is_depth {
+        eval_depth(inst, line, 0, 0)
+    } else {
+        unimplemented!("eval_width(inst, line)")
     }
 }
