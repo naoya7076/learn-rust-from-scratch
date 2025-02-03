@@ -1,3 +1,9 @@
+mod codegen;
+mod evaluator;
+mod parser;
+
+use crate::helper::DynError;
+use std::fmt::{self, Display};
 #[derive(Debug)]
 pub enum Instruction {
     Char(char),
