@@ -55,3 +55,11 @@ fn eval_depth(
         }
     }
 }
+
+pub fn eval(inst: &[Instruction], line: &[char], is_depth: bool) -> Result<bool, EvalError>{
+    if is_depth{
+        eval_depth(inst, line, 0,0)
+    }eval{
+        eval_width(inst, line)
+    }
+}
