@@ -9,7 +9,7 @@ use std::{
 };
 fn main() -> Result<(), DynError> {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
+    if args.len() <= 2 {
         eprintln!("Usage: {} <expr>", args[0]);
         return Err("invalid arguments".into());
     } else {
