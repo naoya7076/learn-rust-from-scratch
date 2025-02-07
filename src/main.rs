@@ -59,4 +59,16 @@ mod tests {
         let mut n: usize = !0;
         assert!(safe_add(&mut n, &1, || ()).is_err());
     }
+    #[test]
+    fn test_matching() {
+        assert!(do_matching("+b", "bbb", true).is_err());
+        assert!(do_matching("*b", "bbb", true).is_err());
+        assert!(do_matching("|b", "bbb", true).is_err());
+        assert!(do_matching("?b", "bbb", true).is_err());
+
+        assert!(do_matching("abc|def", "def", true).unwrap());
+        assert!(do_matching("(abc)*", "abcabc", true).unwrap());
+        assert!(do_matching("(ab|de)+", "abcdcd", true).unwrap());
+        assert!(do_matching("abc?", "ab", true).unwrap());
+    }
 }
